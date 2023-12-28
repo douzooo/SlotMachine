@@ -159,8 +159,8 @@ function run() {
     
         for (let i = 0; i < reels.length; i++) {
             const r = reels[i];
-            // Änderungen an target und time
-            const target = r.position + 10+ 10; // Hier könntest du eine andere Logik für die Zielposition verwenden
+
+            const target = r.position + 10+ 10; 
             const time = 2500 + 600 + (i * 600);
      
             tweenTo(r, 'position', target, time, backout(0.2), null, i === reels.length - 1 ? reelsComplete : null);
