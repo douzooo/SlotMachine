@@ -129,7 +129,7 @@ function run() {
 
     mask.drawRect(0, 200,app.screen.width,540);
 
-    reelContainer.mask = mask;
+    // reelContainer.mask = mask;
 
 
 
@@ -139,9 +139,8 @@ function run() {
 
         for (let i = 0; i < reels.length; i++) {
             const r = reels[i];
-            const extra = Math.floor(Math.random() * 3);
-            const target = r.position + 10 + i * 5 + extra;
-            const time = 2500 + i * 600 + extra * 600;
+            const target = r.position + 10 + i * 5;
+            const time = 2500 + i * 600  ;
 
             tweenTo(r, 'position', target, time, backout(0.2), null, i === reels.length - 1 ? reelsComplete : null);
         }
@@ -150,10 +149,24 @@ function run() {
     // Reels done handler.
     function reelsComplete() {
         running = false;
+        count = 0;
     }
+
+    var count = 0;
+
+    var setsymbols = [
+        [0,0,0],
+        [0,0,0],
+        [0,0,0],
+        [0,0,0],
+        [0,0,0]
+    ]
 
     // Listen for animate update.
     app.ticker.add((delta) => {
+
+
+
         // Update the slots.
         for (let i = 0; i < reels.length; i++) {
             const r = reels[i];
@@ -165,18 +178,24 @@ function run() {
 
             // Update symbol positions on reel.
             for (let j = 0; j < r.symbols.length; j++) {
-                console.log("hi")
                 const s = r.symbols[j];
                 const prevy = s.y;
-
+                
                 s.y = ((r.position + j) % r.symbols.length) * SYMBOL_SIZE - SYMBOL_SIZE;
                 if (s.y < 0 && prevy > SYMBOL_SIZE) {
+                    count++;
                     // Detect going over and swap a texture.
                     // This should in proper product be determined from some logical reel.
-                    s.texture = slotTextures[Math.floor(Math.random() * slotTextures.length)];
-                    s.scale.x = s.scale.y = Math.min(SYMBOL_SIZE / s.texture.width, SYMBOL_SIZE / s.texture.height);
-                    s.x = Math.round((SYMBOL_SIZE - s.width) / 2);
-                }
+                    if(count >= 53 + (1 * i)){
+                        
+                        console.log("Reel: " + i + " Symbol: " + j)
+                        console.log(count)
+                        s.texture = slotTextures[setsymbols[i][j]];
+                        s.scale.x = s.scale.y = Math.min(SYMBOL_SIZE / s.texture.width, SYMBOL_SIZE / s.texture.height);
+                        s.x = Math.round((SYMBOL_SIZE - s.width) / 2);
+                        if(i = 4 && j == 3) break;
+                    }
+               }
             }
         }
     });
