@@ -127,24 +127,46 @@ function run() {
     const mask = new PIXI.Graphics();
     mask.beginFill(0, 1);
 
-    mask.drawRect(0, 200,app.screen.width,540);
+    mask.drawRect(0, 200, app.screen.width, 540);
 
     // reelContainer.mask = mask;
 
 
 
+    var result;
+
+    function getResult(){
+
+        var result = [
+            [1, 1, 2],
+            [1, 1, 0],
+            [1, 1, 0],
+            [1, 1, 0],
+            [1, 1, 0]
+        ]
+
+        return result;
+
+    }
+
+
     function startPlay() {
         if (running) return;
-        running = true;
+        result = null
+        result = getResult();
 
+        running = true;
+    
         for (let i = 0; i < reels.length; i++) {
             const r = reels[i];
-            const target = r.position + 10 + i * 5;
-            const time = 2500 + i * 600  ;
-
+            // Änderungen an target und time
+            const target = r.position + 10+ 10; // Hier könntest du eine andere Logik für die Zielposition verwenden
+            const time = 2500 + 600 + (i * 600);
+     
             tweenTo(r, 'position', target, time, backout(0.2), null, i === reels.length - 1 ? reelsComplete : null);
         }
     }
+    
 
     // Reels done handler.
     function reelsComplete() {
@@ -154,51 +176,54 @@ function run() {
 
     var count = 0;
 
-    var setsymbols = [
-        [0,0,0],
-        [0,0,0],
-        [0,0,0],
-        [0,0,0],
-        [0,0,0]
-    ]
 
-    // Listen for animate update.
     app.ticker.add((delta) => {
 
+        if(!result) return;
 
-
-        // Update the slots.
         for (let i = 0; i < reels.length; i++) {
             const r = reels[i];
-            // Update blur filter y amount based on speed.
-            // This would be better if calculated with time in mind also. Now blur depends on frame rate.
-
             r.blur.blurY = (r.position - r.previousPosition) * 8;
             r.previousPosition = r.position;
-
-            // Update symbol positions on reel.
+     
             for (let j = 0; j < r.symbols.length; j++) {
                 const s = r.symbols[j];
                 const prevy = s.y;
-                
+     
                 s.y = ((r.position + j) % r.symbols.length) * SYMBOL_SIZE - SYMBOL_SIZE;
+     
                 if (s.y < 0 && prevy > SYMBOL_SIZE) {
                     count++;
-                    // Detect going over and swap a texture.
-                    // This should in proper product be determined from some logical reel.
-                    if(count >= 53 + (1 * i)){
+     
+                    if (count >= 53 + (1 * i)) {
+                        console.log(count);
+                        if(j != 0){
+                            s.texture = slotTextures[result[i][j-1]];
+                            s.scale.x = s.scale.y = Math.min(SYMBOL_SIZE / s.texture.width, SYMBOL_SIZE / s.texture.height);
+                            s.x = Math.round((SYMBOL_SIZE - s.width) / 2);
+         
+                            
+                        }else{
+                            console.log(0)
+                            s.texture = slotTextures[1];
+                            s.scale.x = s.scale.y = Math.min(SYMBOL_SIZE / s.texture.width, SYMBOL_SIZE / s.texture.height);
+                            s.x = Math.round((SYMBOL_SIZE - s.width) / 2);
+         
+                    
+                        }
+
+                        if (j === 3 && i === reels.length - 1 && r.position === r.targetPosition) {
+                            // Überprüfe, ob die Zielposition erreicht ist und stoppe die Animation
+                            reelsComplete();
+                            return;
+                        }
                         
-                        console.log("Reel: " + i + " Symbol: " + j)
-                        console.log(count)
-                        s.texture = slotTextures[setsymbols[i][j]];
-                        s.scale.x = s.scale.y = Math.min(SYMBOL_SIZE / s.texture.width, SYMBOL_SIZE / s.texture.height);
-                        s.x = Math.round((SYMBOL_SIZE - s.width) / 2);
-                        if(i = 4 && j == 3) break;
                     }
-               }
+                }
             }
         }
     });
+    
 
     resize();
     app.stage.addChildAt(background, 0);
